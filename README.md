@@ -26,7 +26,7 @@ A libretro core for the [GameTank](https://gametank.zone), built from Clyde Shaf
 make
 ```
 
-CI builds Linux x86_64, arm64 and armhf with `zig c++`, targeting glibc 2.23 for older handhelds.
+CI builds Linux x86_64, arm64 and armhf with the current Ubuntu GCC toolchains.
 
 ## Upstream
 
