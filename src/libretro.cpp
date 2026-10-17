@@ -168,8 +168,8 @@ static uint16_t read_pad(unsigned port) {
 	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))  mask |= GameTank::Buttons::DOWN;
 	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))  mask |= GameTank::Buttons::LEFT;
 	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT)) mask |= GameTank::Buttons::RIGHT;
-	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_B))     mask |= GameTank::Buttons::A;
-	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_A))     mask |= GameTank::Buttons::B;
+	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_A))     mask |= GameTank::Buttons::A;
+	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_B))     mask |= GameTank::Buttons::B;
 	if(bits & ((1 << RETRO_DEVICE_ID_JOYPAD_Y) | (1 << RETRO_DEVICE_ID_JOYPAD_X))) mask |= GameTank::Buttons::C;
 	if(bits & (1 << RETRO_DEVICE_ID_JOYPAD_START)) mask |= GameTank::Buttons::START;
 	return mask;
@@ -332,8 +332,8 @@ RETRO_API bool retro_load_game(const retro_game_info* game) {
 		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "D-Pad Up" }, \
 		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "D-Pad Down" }, \
 		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "D-Pad Right" }, \
-		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "A" }, \
-		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "B" }, \
+		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "A" }, \
+		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "B" }, \
 		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "C" }, \
 		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "C" }, \
 		{ port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start" },
