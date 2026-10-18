@@ -253,7 +253,7 @@ RETRO_API void retro_get_system_info(retro_system_info* info) {
 #ifndef GIT_VERSION
 #define GIT_VERSION ""
 #endif
-	info->library_version = "0.1" GIT_VERSION;
+	info->library_version = "1.0" GIT_VERSION;
 	info->valid_extensions = "gtr";
 	info->need_fullpath = false;
 	info->block_extract = false;
