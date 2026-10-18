@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  linux-modern:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -43,19 +43,156 @@ jobs:
           readelf --dyn-syms -W gametank_libretro.so | grep -c ' retro_'
 
       - name: Package
-        run: |
-          mkdir -p dist
-          cp gametank_libretro.so gametank_libretro.info dist/
-          cd dist && zip ../gametank_libretro-linux-${{ matrix.arch }}.zip *
+        run: zip -j gametank_libretro-linux-modern-${{ matrix.arch }}.zip gametank_libretro.so gametank_libretro.info
 
       - uses: actions/upload-artifact@v4
         with:
-          name: gametank_libretro-linux-${{ matrix.arch }}
-          path: gametank_libretro-linux-${{ matrix.arch }}.zip
+          name: gametank_libretro-linux-modern-${{ matrix.arch }}
+          path: gametank_libretro-linux-modern-${{ matrix.arch }}.zip
+
+  linux-glibc223:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            target: aarch64-linux-gnu.2.23
+            cpu: cortex_a53
+            binutils: binutils-aarch64-linux-gnu
+            prefix: aarch64-linux-gnu-
+          - arch: armhf
+            target: arm-linux-gnueabihf.2.23
+            cpu: cortex_a7
+            binutils: binutils-arm-linux-gnueabihf
+            prefix: arm-linux-gnueabihf-
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.1
+
+      - name: Install binutils
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.binutils }}
+
+      - name: Build
+        run: |
+          make -j"$(nproc)" CXX="zig c++ -target ${{ matrix.target }} -mcpu=${{ matrix.cpu }}"
+          ${{ matrix.prefix }}strip gametank_libretro.so
+
+      - name: Check exports and glibc floor
+        run: |
+          file gametank_libretro.so
+          readelf --dyn-syms -W gametank_libretro.so | grep -c ' retro_'
+          NEWEST=$(readelf --dyn-syms -W gametank_libretro.so | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1)
+          echo "Newest glibc symbol: $NEWEST"
+          if [ "$(printf '%s\n' "$NEWEST" GLIBC_2.23 | sort -V | tail -1)" != GLIBC_2.23 ]; then
+            echo "::error::Needs $NEWEST, expected GLIBC_2.23 or older"
+            exit 1
+          fi
+
+      - name: Package
+        run: zip -j gametank_libretro-linux-glibc2.23-${{ matrix.arch }}.zip gametank_libretro.so gametank_libretro.info
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gametank_libretro-linux-glibc2.23-${{ matrix.arch }}
+          path: gametank_libretro-linux-glibc2.23-${{ matrix.arch }}.zip
+
+  windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install mingw
+        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64
+
+      - name: Build
+        run: |
+          make -j"$(nproc)" platform=win CXX=x86_64-w64-mingw32-g++
+          x86_64-w64-mingw32-strip gametank_libretro.dll
+
+      - name: Check exports
+        run: |
+          file gametank_libretro.dll
+          x86_64-w64-mingw32-objdump -p gametank_libretro.dll | grep -c ' retro_'
+          x86_64-w64-mingw32-objdump -p gametank_libretro.dll | grep 'DLL Name'
+
+      - name: Package
+        run: zip -j gametank_libretro-windows-x86_64.zip gametank_libretro.dll gametank_libretro.info
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gametank_libretro-windows-x86_64
+          path: gametank_libretro-windows-x86_64.zip
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+          for arch in x86_64 arm64; do
+            make clean
+            make -j"$(sysctl -n hw.ncpu)" platform=osx CXX="clang++ -arch $arch -mmacosx-version-min=10.13"
+            mv gametank_libretro.dylib gametank_libretro-$arch.dylib
+          done
+          lipo -create -output gametank_libretro.dylib gametank_libretro-x86_64.dylib gametank_libretro-arm64.dylib
+          strip -x gametank_libretro.dylib
+
+      - name: Check exports
+        run: |
+          lipo -info gametank_libretro.dylib
+          nm -gU gametank_libretro.dylib | grep -c ' _retro_'
+
+      - name: Package
+        run: zip -j gametank_libretro-macos-universal.zip gametank_libretro.dylib gametank_libretro.info
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gametank_libretro-macos-universal
+          path: gametank_libretro-macos-universal.zip
+
+  android:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - abi: arm64-v8a
+            cxx: aarch64-linux-android21-clang++
+          - abi: armeabi-v7a
+            cxx: armv7a-linux-androideabi21-clang++
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build
+        run: |
+          BIN="$ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          LDFLAGS=-static-libstdc++ make -j"$(nproc)" CXX="$BIN/${{ matrix.cxx }}"
+          "$BIN/llvm-strip" gametank_libretro.so
+
+      - name: Check exports
+        run: |
+          file gametank_libretro.so
+          readelf --dyn-syms -W gametank_libretro.so | grep -c ' retro_'
+          readelf -d gametank_libretro.so | grep NEEDED
+
+      - name: Package
+        run: |
+          mv gametank_libretro.so gametank_libretro_android.so
+          zip -j gametank_libretro-android-${{ matrix.abi }}.zip gametank_libretro_android.so gametank_libretro.info
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gametank_libretro-android-${{ matrix.abi }}
+          path: gametank_libretro-android-${{ matrix.abi }}.zip
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [linux-modern, linux-glibc223, windows, macos, android]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
