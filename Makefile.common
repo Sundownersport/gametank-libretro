@@ -1,0 +1,8 @@
+INCFLAGS := -I$(CORE_DIR)/src -I$(CORE_DIR)/libretro-common/include
+
+SOURCES_CXX := \
+	$(CORE_DIR)/src/libretro.cpp \
+	$(CORE_DIR)/src/gametank.cpp \
+	$(CORE_DIR)/src/blitter.cpp \
+	$(CORE_DIR)/src/audio_coprocessor.cpp \
+	$(CORE_DIR)/src/mos6502/mos6502.cpp

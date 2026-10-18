@@ -26,6 +26,8 @@ A libretro core for the [GameTank](https://gametank.zone), built from Clyde Shaf
 make
 ```
 
+Other targets: `make platform=<osx|ios-arm64|tvos-arm64|win|libnx|vita|ctr|emscripten>`. Android builds with `ndk-build -C jni`.
+
 CI builds:
 
 - Linux x86_64, arm64 and armhf with the current Ubuntu GCC toolchains
