@@ -38,7 +38,7 @@ CI builds:
 
 ## Upstream
 
-The emulation code is taken from GameTankEmulator commit `9896544`:
+The emulation code is taken from GameTankEmulator commit `be32dea`:
 
 - `src/mos6502/` is upstream's CPU core with `GetState`/`SetState` added.
 - `src/blitter.cpp`, `src/audio_coprocessor.cpp` and `src/gametank.cpp` are upstream's blitter, audio coprocessor and memory map (`gte.cpp`) with SDL, devtools and the profiler removed.
