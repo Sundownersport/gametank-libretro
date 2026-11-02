@@ -32,7 +32,7 @@ void AudioCoprocessor::fill_audio(int16_t* stream, size_t len) {
 	for(size_t i = 0; i < len; i++) {
 		stream[i] = (int16_t) ((state.dacReg - 128) * 256);
 		state.irqCounter -= clksPerHostSample;
-		if(state.irqCounter < 0) {
+		while(state.irqCounter < 0 && state.irqRate > 0) {
 			if(state.resetting) {
 				state.resetting = false;
 				cpu->Reset();
